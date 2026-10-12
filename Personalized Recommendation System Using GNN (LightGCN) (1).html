@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Personalized Recommendation System Using GNN (LightGCN)</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--tx:#161a2b;--mu:#5d6580;--ac:#5b5bf0;--ac2:#f0705b;--bd:#e2e5f0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1220;--card:#181c30;--tx:#eef0fb;--mu:#9aa3c4;--ac:#8c8cff;--ac2:#ff8d78;--bd:#2a3050}}
+:root[data-theme=dark]{--bg:#0f1220;--card:#181c30;--tx:#eef0fb;--mu:#9aa3c4;--ac:#8c8cff;--ac2:#ff8d78;--bd:#2a3050}
+html{scroll-padding-top:60px}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--card);border-bottom:1px solid var(--bd);display:flex;gap:18px;padding:12px 20px;overflow-x:auto;z-index:5;white-space:nowrap}
+nav b{color:var(--ac)}nav a{color:var(--mu);text-decoration:none;font-size:14px}nav a:hover{color:var(--tx)}
+header{padding:56px 20px 36px;max-width:980px;margin:auto}
+h1{font-size:clamp(28px,5vw,46px);line-height:1.15;margin:0 0 12px}h1 span{color:var(--ac)}
+.sub{color:var(--mu);max-width:700px}.team{margin-top:18px;font-size:13px;color:var(--mu)}
+section{max-width:980px;margin:auto;padding:28px 20px}h2{margin:0 0 14px;font-size:26px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px}
+.card h3{margin:0 0 6px;font-size:16px}.card p{margin:0;color:var(--mu);font-size:14px}
+.stat{font-size:34px;font-weight:700;color:var(--ac)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.flow div{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:9px 13px;font-size:14px}.flow .on{border-color:var(--ac);color:var(--ac);font-weight:600}.flow i{color:var(--mu);font-style:normal}
+code,.eq{font-family:ui-monospace,Menlo,monospace;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:2px 6px;font-size:13px}
+.eq{display:block;padding:10px 14px;margin:8px 0;overflow-x:auto}
+.ctl{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+select,button,input{font:inherit;padding:8px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
+button{background:var(--ac);color:#fff;border:0;cursor:pointer;font-weight:600}button.g{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+canvas{width:100%;height:230px;background:var(--card);border:1px solid var(--bd);border-radius:12px}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.rec{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd);font-size:14px}.rec:last-child{border:0}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--bd);color:var(--mu);margin-left:6px}.hit{color:#1faa59;font-weight:700}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:8px 10px;border-bottom:1px solid var(--bd);text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-weight:600}td.b{color:var(--ac);font-weight:700}
+.bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}.bar span{width:100px;color:var(--mu)}.bar div{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.leg{font-size:13px;color:var(--mu);margin:6px 0}.leg b.a{color:var(--ac)}.leg b.o{color:var(--ac2)}
+footer{text-align:center;color:var(--mu);font-size:13px;padding:30px 20px}
+</style></head><body>
+<nav><b>LightGCN</b><a href="#about">Overview</a><a href="#demo">Live Demo</a><a href="#method">Method</a><a href="#results">Results</a><a href="#ablation">Ablation</a></nav>
+<header>
+<h1>Personalized Recommendation System <span>Using GNN</span></h1>
+<p class="sub">An interactive implementation of <b>LightGCN</b> (He et al., SIGIR 2020): collaborative filtering that keeps only neighborhood aggregation, with no feature transformation and no nonlinearity. Train it live in your browser and watch it beat plain matrix factorization.</p>
+<div class="team">A. Laxmiprasanna (B23IT063) · L. Ramarao (B23IT037) · K. Amith Joel (B23IT044) · M. Akshay (B23IT005)<br>Final Year B.Tech IT, Kakatiya Institute of Technology and Science (KITS), Warangal</div>
+</header>
+
+<section id="about"><h2>Why LightGCN?</h2>
+<div class="grid">
+<div class="card"><div class="stat">~16%</div><h3>Avg. gain over NGCF</h3><p>Same data splits and evaluation protocol.</p></div>
+<div class="card"><div class="stat">+9.57%</div><h3>Recall by removing parts</h3><p>Dropping feature transform and activation from NGCF (Gowalla).</p></div>
+<div class="card"><div class="stat">= MF</div><h3>Same parameter count</h3><p>Only layer-0 ID embeddings are trained.</p></div>
+</div>
+<p class="sub" style="margin-top:14px">Nodes in a user-item graph carry only one-hot IDs with no semantics, so stacked nonlinear transformations make training harder without adding value. LightGCN keeps the one part that matters: smoothing embeddings across neighbors.</p></section>
+
+<section id="demo"><h2>Live demo: train LightGCN vs MF</h2>
+<p class="sub">A synthetic platform with 48 users and 72 items in 6 genres. Each user likes 2 genres. 25% of interactions are hidden as a test set; the metric is Recall@10 on those hidden items.</p>
+<div class="ctl">
+<label>Layers K <select id="K"><option>1</option><option>2</option><option selected>3</option><option>4</option></select></label>
+<button id="go">Train</button><button class="g" id="rs">Reset</button><span id="st" class="leg"></span></div>
+<div class="leg"><b class="a">● LightGCN</b> &nbsp; <b class="o">● MF (K=0)</b> &nbsp; Recall@10 vs epoch</div>
+<canvas id="cv" width="900" height="230"></canvas>
+<div class="two" style="margin-top:14px">
+<div class="card"><div class="ctl"><label>User <select id="usr"></select></label></div><div id="hist" class="leg"></div><div id="recs"></div></div>
+<div class="card"><h3>Live metrics</h3><div id="met" class="leg"></div><p style="margin-top:10px">✓ marks a recommended item that was hidden in the test set (a correct prediction). Recommendations come from the LightGCN model and exclude items the user already interacted with.</p></div>
+</div></section>
+
+<section id="method"><h2>How it works</h2>
+<div class="flow"><div>ID embeddings e⁽⁰⁾</div><i>→</i><div class="on">Light graph convolution ×K</div><i>→</i><div class="on">Layer combination</div><i>→</i><div>Inner product</div><i>→</i><div>BPR loss</div></div>
+<div class="grid">
+<div class="card"><h3>1. Propagation</h3><span class="eq">e_u⁽ᵏ⁺¹⁾ = Σ_{i∈N_u} e_i⁽ᵏ⁾ / √(|N_u||N_i|)</span><p>Normalized neighbor sum only. No W, no σ, no self-loop.</p></div>
+<div class="card"><h3>2. Layer combination</h3><span class="eq">e_u = Σ_k α_k e_u⁽ᵏ⁾, α_k = 1/(K+1)</span><p>Counters over-smoothing and subsumes self-connections.</p></div>
+<div class="card"><h3>3. Prediction + loss</h3><span class="eq">ŷ_ui = e_uᵀ e_i</span><span class="eq">L = −Σ ln σ(ŷ_ui − ŷ_uj) + λ‖E⁽⁰⁾‖²</span><p>Pairwise Bayesian Personalized Ranking.</p></div>
+</div>
+<p class="sub" style="margin-top:14px">Matrix form: <code>E = Σ α_k Â^k E⁽⁰⁾</code> with <code>Â = D^-½ A D^-½</code>. Because the model is linear, this page backpropagates exactly: ∂L/∂E⁽⁰⁾ = Σ α_k Â^k (∂L/∂E).</p></section>
+
+<section id="results"><h2>Paper results</h2>
+<div class="tw"><table><tr><th>Recall@20 / NDCG@20</th><th>Gowalla</th><th>Yelp2018</th><th>Amazon-Book</th></tr>
+<tr><td>NGCF</td><td>0.1570 / 0.1327</td><td>0.0579 / 0.0477</td><td>0.0344 / 0.0263</td></tr>
+<tr><td>Mult-VAE</td><td>0.1641 / 0.1335</td><td>0.0584 / 0.0450</td><td>0.0407 / 0.0315</td></tr>
+<tr><td>GRMF</td><td>0.1477 / 0.1205</td><td>0.0571 / 0.0462</td><td>0.0354 / 0.0270</td></tr>
+<tr><td>GRMF-norm</td><td>0.1557 / 0.1261</td><td>0.0561 / 0.0454</td><td>0.0352 / 0.0269</td></tr>
+<tr><td><b>LightGCN</b></td><td class="b">0.1830 / 0.1554</td><td class="b">0.0649 / 0.0530</td><td class="b">0.0411 / 0.0315</td></tr></table></div>
+<h3 style="margin-top:20px">Recall gain over NGCF by layers (3-layer to 4-layer view)</h3>
+<div id="bars"></div></section>
+
+<section id="ablation"><h2>Ablation on NGCF (Gowalla recall)</h2>
+<div class="grid">
+<div class="card"><h3>NGCF</h3><div class="stat">0.1547</div></div>
+<div class="card"><h3>− transform (NGCF-f)</h3><div class="stat">0.1686</div></div>
+<div class="card"><h3>− activation (NGCF-n)</h3><div class="stat">0.1536</div></div>
+<div class="card"><h3>− both (NGCF-fn)</h3><div class="stat">0.1742</div></div></div>
+<p class="sub" style="margin-top:12px">Feature transformation hurts, activation hurts once transformation is gone, and the degradation comes from training difficulty rather than overfitting. Symmetric sqrt normalization was the best choice among those tested, and the best λ was about 1e-4 (Gowalla, Amazon-Book) and 1e-3 (Yelp2018).</p></section>
+<footer>Based on: X. He, K. Deng, X. Wang, Y. Li, Y. Zhang, M. Wang. LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation. SIGIR 2020.</footer>
+
+<script>
+const GN=["Sci-Fi","Romance","Action","Comedy","Horror","Drama"],U=48,I=72,N=U+I,D=16,LR=.05,LAM=1e-3;
+let seed=11;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+const pref=[],train=[],test=[],trS=[];
+for(let u=0;u<U;u++){const a=u%6,b=(a+1+Math.floor(rnd()*5))%6;pref.push([a,b]);train.push([]);test.push([]);trS.push(new Set());
+ for(let i=0;i<I;i++){if(rnd()<(pref[u].includes(i%6)?.4:.03)){(rnd()<.25?test[u]:train[u]).push(i)}}
+ if(!train[u].length&&test[u].length)train[u].push(test[u].pop());train[u].forEach(i=>trS[u].add(i))}
+const adj=Array.from({length:N},()=>[]);
+train.forEach((l,u)=>l.forEach(i=>{adj[u].push(U+i);adj[U+i].push(u)}));
+const deg=adj.map(a=>a.length||1);
+function prop(X){const Y=new Float32Array(N*D);for(let n=0;n<N;n++)for(const m of adj[n]){const w=1/Math.sqrt(deg[n]*deg[m]);for(let d=0;d<D;d++)Y[n*D+d]+=w*X[m*D+d]}return Y}
+let base;function initBase(){seed=5;base=new Float32Array(N*D).map(()=>(rnd()-.5)*.2)}
+function mk(K){return{K,E:Float32Array.from(base),rec:[],loss:0}}
+function final(m){const a=1/(m.K+1);let cur=m.E,F=Float32Array.from(cur).map(v=>v*a);for(let k=1;k<=m.K;k++){cur=prop(cur);for(let j=0;j<F.length;j++)F[j]+=a*cur[j]}return F}
+const dot=(F,a,b)=>{let s=0;for(let d=0;d<D;d++)s+=F[a*D+d]*F[b*D+d];return s}
+function step(m){const F=final(m),G=new Float32Array(N*D);let L=0,c=0;
+ for(let u=0;u<U;u++)for(const i of train[u]){let j;do{j=Math.floor(rnd()*I)}while(trS[u].has(j));
+  const x=dot(F,u,U+i)-dot(F,u,U+j);L+=Math.log1p(Math.exp(-x));c++;const s=-1/(1+Math.exp(x));
+  for(let d=0;d<D;d++){const eu=F[u*D+d],ei=F[(U+i)*D+d],ej=F[(U+j)*D+d];G[u*D+d]+=s*(ei-ej);G[(U+i)*D+d]+=s*eu;G[(U+j)*D+d]-=s*eu}}
+ const a=1/(m.K+1);let cur=G,A=Float32Array.from(G).map(v=>v*a);
+ for(let k=1;k<=m.K;k++){cur=prop(cur);for(let j=0;j<A.length;j++)A[j]+=a*cur[j]}
+ for(let j=0;j<m.E.length;j++)m.E[j]-=LR*(A[j]+LAM*m.E[j]);m.loss=L/c}
+function topk(F,u,k){const r=[];for(let i=0;i<I;i++)if(!trS[u].has(i))r.push([i,dot(F,u,U+i)]);return r.sort((a,b)=>b[1]-a[1]).slice(0,k)}
+function recall(m){const F=final(m);let s=0,n=0;for(let u=0;u<U;u++){if(!test[u].length)continue;const t=new Set(test[u]);s+=topk(F,u,10).filter(r=>t.has(r[0])).length/t.size;n++}return s/n}
+let lg,mf,ep=0,run=false;
+function reset(){run=false;go.textContent="Train";initBase();lg=mk(+K.value);mf=mk(0);ep=0;lg.rec=[recall(lg)];mf.rec=[recall(mf)];draw();ui()}
+function draw(){const c=cv,x=c.getContext("2d"),W=c.width,H=c.height,p=30,st=getComputedStyle(document.documentElement);
+ x.clearRect(0,0,W,H);const all=lg.rec.concat(mf.rec),mx=Math.max(.3,...all)*1.1;
+ x.strokeStyle="rgba(128,128,160,.3)";x.fillStyle="rgba(128,128,160,.9)";x.font="12px sans-serif";
+ for(let g=0;g<=4;g++){const y=H-p-(H-2*p)*g/4;x.beginPath();x.moveTo(p+10,y);x.lineTo(W-10,y);x.stroke();x.fillText((mx*g/4).toFixed(2),0,y+4)}
+ const line=(a,col)=>{x.strokeStyle=col;x.lineWidth=2.5;x.beginPath();a.forEach((v,i)=>{const X=p+10+(W-p-20)*i/Math.max(a.length-1,20),Y=H-p-(H-2*p)*v/mx;i?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke()};
+ line(mf.rec,"#f0705b");line(lg.rec,"#5b5bf0");x.fillText("epoch "+ep,W-80,H-8)}
+function ui(){met.innerHTML=`Epoch: <b>${ep}</b><br>LightGCN (K=${lg.K}) Recall@10: <b class="a">${lg.rec.at(-1).toFixed(3)}</b> · BPR loss ${lg.loss.toFixed(3)}<br>MF (K=0) Recall@10: <b class="o">${mf.rec.at(-1).toFixed(3)}</b> · BPR loss ${mf.loss.toFixed(3)}<br>Parameters per model: ${N*D} (identical)`;
+ const u=+usr.value,t=new Set(test[u]),cnt={};train[u].forEach(i=>cnt[GN[i%6]]=(cnt[GN[i%6]]||0)+1);
+ hist.innerHTML=`Likes (hidden truth): <b>${pref[u].map(g=>GN[g]).join(" + ")}</b><br>Watched ${train[u].length} items: ${Object.entries(cnt).map(e=>e.join(" ×")).join(", ")}`;
+ recs.innerHTML=topk(final(lg),u,6).map(([i,s])=>`<div class="rec"><span>${GN[i%6]} #${i}<span class="tag">${pref[u].includes(i%6)?"matches taste":"off-taste"}</span></span><span>${t.has(i)?'<span class="hit">✓ </span>':""}${s.toFixed(2)}</span></div>`).join("")}
+function loop(){if(!run)return;for(let r=0;r<4;r++){step(lg);step(mf);ep++;if(ep%4==0){lg.rec.push(recall(lg));mf.rec.push(recall(mf))}}
+ draw();ui();st.textContent=ep>=300?"Converged.":"Training…";if(ep>=300){run=false;go.textContent="Train";return}requestAnimationFrame(loop)}
+go.onclick=()=>{if(ep>=300)reset();run=!run;go.textContent=run?"Pause":"Resume";if(run)loop()};
+rs.onclick=()=>{st.textContent="";reset()};K.onchange=()=>{st.textContent="";reset()};usr.onchange=ui;
+for(let u=0;u<U;u++)usr.add(new Option("User "+u+" ("+pref[u].map(g=>GN[g]).join("/")+")",u));
+reset();
+[["Gowalla",16.56],["Yelp2018",14.58],["Amazon-Book",17.92]].forEach(([n,v])=>bars.innerHTML+=`<div class="bar"><span>${n}</span><div style="width:${v*14}px"></div>+${v}% (4 layers)</div>`);
+</script></body></html>
